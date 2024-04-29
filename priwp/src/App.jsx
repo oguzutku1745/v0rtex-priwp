@@ -3,43 +3,24 @@ import { Client } from "@xmtp/xmtp-js";
 import { ethers } from "ethers";
 import { MerkleTree } from "merkletreejs";
 import SHA256 from "crypto-js/sha256";
-import ChatApp from "../components/ChatApp";
-// padderson,
+import Tree from "../components/Tree";
+
 const App = () => {
-    const [tree, setTree] = useState(null);
-    const [leaves, setLeaves] = useState(["a"].map((x) => SHA256(x)));
-    const [newLeaf, setNewLeaf] = useState("");
+    const [recipientAddress, setrecipientAddress] = useState("");
+    const [message, setMessage] = useState("");
+    const [xmtp, setXmtp] = useState(null);
 
-    const createTree = () => {
-        const newTree = new MerkleTree(leaves, SHA256);
-        setTree(newTree);
-        alert("Merkle Tree Created!");
-    };
-    // Function to update the Merkle Tree with new data
-    const updateTree = () => {
-        if (newLeaf.trim() === "") {
-            alert("Please enter a valid leaf.");
-            return;
-        }
-        const updatedLeaves = [...leaves, SHA256(newLeaf)];
-        setLeaves(updatedLeaves);
-        const updatedTree = new MerkleTree(updatedLeaves, SHA256);
-        setTree(updatedTree);
-        setNewLeaf(""); // Clear the input after adding
-        alert(`Added "${newLeaf}" to the tree`);
-    };
+    const [conversations, setConversations] = useState([]);
+    const [selectedConversation, setSelectedConversation] = useState(null);
+    const [messages, setMessages] = useState({});
+    const [newMessage, setNewMessage] = useState("");
 
-    // Handle input change
-    const handleInputChange = (event) => {
-        setNewLeaf(event.target.value);
-    };
     /////////////
     /////////////
 
     //// XMTP
 
     /////////
-    const [xmtp, setXmtp] = useState(null);
     let chatContract;
     // Ethereum Setup
 
@@ -68,18 +49,33 @@ const App = () => {
         init();
     }, []);
 
+    const listenForMessages = async (conversation) => {
+        for await (const message of conversation.streamMessages()) {
+            setMessages((prev) => ({
+                ...prev,
+                [conversation.peerAddress]: [
+                    ...prev[conversation.peerAddress],
+                    message,
+                ],
+            }));
+        }
+    };
+
     // Listen for new XMTP conversations and messages
+    const listenForNewConversations = async () => {
+        if (!xmtp) return;
+        for await (const conversation of xmtp.conversations.stream()) {
+            setConversations((prev) => [...prev, conversation]);
+            setMessages((prev) => ({
+                ...prev,
+                [conversation.peerAddress]: [],
+            }));
+            listenForMessages(conversation);
+        }
+    };
+
     useEffect(() => {
-        const listen = async () => {
-            if (!xmtp) return;
-            for await (const conversation of xmtp.conversations.stream()) {
-                console.log(
-                    `New conversation started with ${conversation.peerAddress}`
-                );
-                listenForMessages(conversation);
-            }
-        };
-        listen();
+        listenForNewConversations();
     }, [xmtp]);
 
     // Function to start a new conversation
@@ -91,15 +87,6 @@ const App = () => {
     // Function to send a message in a conversation
     const sendMessage = async (conversation, messageText) => {
         await conversation.send(messageText);
-    };
-
-    // Function to listen for XMTP messages in a conversation
-    const listenForMessages = async (conversation) => {
-        for await (const message of conversation.streamMessages()) {
-            console.log(
-                `New message from ${message.senderAddress}: ${message.content}`
-            );
-        }
     };
 
     // Ethereum contract interactions
@@ -129,7 +116,7 @@ const App = () => {
     }, []);
 
     // Additional helper functions as needed
-    const sendMessageRequest = async (recipientAddress, messageText) => {
+    const sendMessageRequest = async () => {
         await chatContract.createMessageRequest(recipientAddress, messageText);
     };
 
@@ -141,27 +128,56 @@ const App = () => {
         return await chatContract.getMessageRequest(requestId);
     };
 
+    const handleSendMessage = async () => {
+        if (!selectedConversation) return;
+        await selectedConversation.send(newMessage);
+        setNewMessage("");
+    };
+
+    const handleMessageChange = (event) => {
+        setNewMessage(event.target.value);
+    };
+
+    const handleSelectConversation = (conversation) => {
+        setSelectedConversation(conversation);
+    };
+
     return (
         <div>
-            <button onClick={createTree}>Create Merkle Tree</button>
-            <input
-                type="text"
-                value={newLeaf}
-                onChange={handleInputChange}
-                placeholder="Enter new leaf"
-            />
-            <button onClick={updateTree}>Add Leaf</button>
-            <div>
-                <strong>Current Leaves:</strong>
-                {leaves.map((leaf, index) => (
-                    <div key={index}>{leaf.toString()}</div>
-                ))}
+            <Tree />
+            <div className="app">
+                <div className="sidebar">
+                    <h2>Contacts</h2>
+                    {conversations.map((conversation, index) => (
+                        <div
+                            key={index}
+                            onClick={() =>
+                                handleSelectConversation(conversation)
+                            }
+                            className="contact"
+                        >
+                            {conversation.peerAddress}
+                        </div>
+                    ))}
+                </div>
+                <div className="chat">
+                    <div className="messages">
+                        {selectedConversation &&
+                            messages[selectedConversation.peerAddress]?.map(
+                                (msg, index) => <p key={index}>{msg.content}</p>
+                            )}
+                    </div>
+                    <div className="send-message">
+                        <input
+                            type="text"
+                            value={newMessage}
+                            onChange={handleMessageChange}
+                            placeholder="Type a message"
+                        />
+                        <button onClick={handleSendMessage}>Send</button>
+                    </div>
+                </div>
             </div>
-            <div>
-                <strong>Root Hash:</strong>{" "}
-                {tree ? tree.getRoot().toString("hex") : "No tree created"}
-            </div>
-            <ChatApp />
         </div>
     );
 };

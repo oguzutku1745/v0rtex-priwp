@@ -19,7 +19,7 @@ v0rtex-priwp is a messaging application that integrates Noir Language and XMTP f
 
 https://sepolia.scrollscan.com/address/0x9e4f913d59955eeba541fef094d27b3556fa45cb#code
 
-# 2- Money Transfer Contract
+# 2- Private Fund Transfer Contract
 
 https://sepolia.scrollscan.com/address/0xF97565cdd63Db28C8016f1e95379E2DAc7f42E4D#code
 
@@ -48,9 +48,9 @@ npm run dev
 
 The chat application built on XMTP takes full advantage of its decentralized setup to offer a secure and private way to communicate. By harnessing blockchain technology, the app ensures that all messages are encrypted and exchanged directly between users, doing away with the need for centralized servers. XMTP also makes it possible for users to easily send and receive messages across different wallets and blockchain networks, boosting the ability to connect across platforms. Thanks to a user-friendly interface, the application simplifies connecting with others using blockchain addresses, making communication in the blockchain world straightforward and accessible.
 
-## Money Transfer
+## Fund Transfer
 
-The Contract is an Ethereum smart contract that boosts the privacy and security of financial transactions using Zero-Knowledge Proofs (ZK-Proofs). It helps ensure that money moves safely and privately by checking cryptographic proofs through a built-in Verifier circuit. This process checks the validity of each transaction's proofs. The contract maintains a Merkle Tree, which keeps the account balances secure and accurate, ensuring that every transaction matches the ledger's current and verified state.
+The Contract is an Ethereum smart contract that boosts the privacy and security of financial transactions using Zero-Knowledge Proofs (ZK-Proofs). It helps ensure that funds moves safely and privately by checking cryptographic proofs through a built-in Verifier circuit. This process checks the validity of each transaction's proofs. The contract maintains a Merkle Tree, which keeps the account balances secure and accurate, ensuring that every transaction matches the ledger's current and verified state.
 
 ## License
 

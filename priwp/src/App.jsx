@@ -10,21 +10,20 @@ import { ABIVerify } from "../utils/ABIVerify";
 
 const App = () => {
     const [recipientAddress, setrecipientAddress] = useState("");
-    const [receiverAddress, setReceiverAddress] = useState("")
-    const [receiverWAddress, setReceiverWAddress] = useState("")
+    const [receiverAddress, setReceiverAddress] = useState("");
+    const [receiverWAddress, setReceiverWAddress] = useState("");
     const [message, setMessage] = useState("");
     const [xmtp, setXmtp] = useState(null);
 
-    const [amountEth, setAmountEth] = useState("0")
-    const [depositAmount, setDepositAmount] = useState("0")
-    const [withdrawAmount, setWithdrawAmount] = useState("0")
-    const [newMerkleRoot, setNewMerkleRoot] = useState("")
+    const [amountEth, setAmountEth] = useState("0");
+    const [depositAmount, setDepositAmount] = useState("0");
+    const [withdrawAmount, setWithdrawAmount] = useState("0");
+    const [newMerkleRoot, setNewMerkleRoot] = useState("");
 
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState({});
     const [newMessage, setNewMessage] = useState("");
-
 
     /////////////
     /////////////
@@ -72,7 +71,8 @@ const App = () => {
     // Listen for new XMTP conversations and messages
     const listenForNewConversations = async () => {
         if (!xmtp) return;
-        for await (const conversation of xmtp.conversations.stream()) {
+        let allconversations = await xmtp.conversations.list();
+        for (const conversation of allconversations) {
             setConversations((prev) => [...prev, conversation]);
             setMessages((prev) => ({
                 ...prev,
@@ -171,33 +171,35 @@ const App = () => {
     };
 
     const depositAndUpdate = async (newMerkleRoot) => {
-
         if (!window.ethereum) {
-            alert('Please install MetaMask to use this feature!');
+            alert("Please install MetaMask to use this feature!");
             return;
         }
 
         try {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send('eth_requestAccounts', []); // Request account access
+            await provider.send("eth_requestAccounts", []); // Request account access
             const signer = provider.getSigner();
-            const contract = new ethers.Contract(contractAddress, contractABI, signer);
-            ethers.utils.hashMessage(receiverAddress)
-
+            const contract = new ethers.Contract(
+                contractAddress,
+                contractABI,
+                signer
+            );
+            ethers.utils.hashMessage(receiverAddress);
 
             const transactionResponse = await contract.depositAndUpdateRoot(
                 hashedReceiver,
                 newMerkleRoot,
                 {
-                    value: ethers.utils.parseEther(depositAmount) // Convert Ether to Wei
+                    value: ethers.utils.parseEther(depositAmount), // Convert Ether to Wei
                 }
             );
 
             await transactionResponse.wait(); // Wait for the transaction to be mined
-            setMessage('Deposit successful!');
+            setMessage("Deposit successful!");
         } catch (error) {
-            console.error('Failed to complete the transaction:', error);
-            setMessage('Transaction failed!');
+            console.error("Failed to complete the transaction:", error);
+            setMessage("Transaction failed!");
         }
     };
 
@@ -275,7 +277,7 @@ const App = () => {
             pub_key_y: Array.from(ethers.utils.arrayify("0x" + pub_key_y)),
             signature: sSignature,
 
-            hashed_receiver : ethers.utils.hashMessage(receiverAddress),
+            hashed_receiver: ethers.utils.hashMessage(receiverAddress),
 
             hashed_message: Array.from(ethers.utils.arrayify(hashedMessage)),
             nullifier: ethers.utils.hashMessage(sSignature),
@@ -311,7 +313,7 @@ const App = () => {
             from: signeraddress,
             to: COMMENT_VERIFIER_ADDRESS,
 
-            value: '0',
+            value: "0",
             gasPrice: "700000000",
             nonce: await provider.getTransactionCount(signeraddress),
             chainId: "534351",
@@ -370,14 +372,14 @@ const App = () => {
                 </div>
                 <div>
                     <div>
-                    <h2>Deposit</h2>
-                    <input
+                        <h2>Deposit</h2>
+                        <input
                             type="text"
                             value={receiverAddress}
                             onChange={handleReceiverAddressChange}
                             placeholder="Receiver's Address"
                         />
-                    <input
+                        <input
                             type="text"
                             value={newMerkleRoot}
                             onChange={handleMerkleRootChange}
@@ -389,11 +391,11 @@ const App = () => {
                             onChange={handleDepositAmountChange}
                             placeholder="Deposit Amount"
                         />
-                        <button onClick={depositAndUpdate} >Deposit</button>
+                        <button onClick={depositAndUpdate}>Deposit</button>
                     </div>
                     <div>
-                    <h2>Withdraw</h2>
-                    <input
+                        <h2>Withdraw</h2>
+                        <input
                             type="text"
                             value={receiverWAddress}
                             onChange={handleReceiverWAddressChange}
@@ -405,7 +407,7 @@ const App = () => {
                             onChange={handleWithdrawAmountChange}
                             placeholder="Withdraw Amount"
                         />
-                        <button onClick={withdrawWProof} >Withdraw</button>
+                        <button onClick={withdrawWProof}>Withdraw</button>
                     </div>
                 </div>
             </div>

@@ -61,8 +61,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 For more information and support, please visit the [repository issues](https://github.com/oguzutku1745/v0rtex-priwp/issues).
 
 Oğuz Utku Yıldız : ZK Developer 
+
 Ömer Özer : Front End Developer 
+
 Hüsamettin Gündüzoğlu : XMTP Developer 
+
 Emir Can Dağlı : Contact Developer
 
 Thank you for exploring v0rtex-priwp!

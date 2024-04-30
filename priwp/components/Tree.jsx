@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MerkleTree } from "merkletreejs";
 import SHA256 from "crypto-js/sha256";
-// padderson,
+
 const Tree = () => {
     const [tree, setTree] = useState(null);
     const [leaves, setLeaves] = useState(["a"].map((x) => SHA256(x)));

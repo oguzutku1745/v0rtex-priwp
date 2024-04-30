@@ -9,14 +9,20 @@ import { ABI } from "../utils/ABI";
 
 const App = () => {
     const [recipientAddress, setrecipientAddress] = useState("");
+    const [receiverAddress, setReceiverAddress] = useState("")
+    const [receiverWAddress, setReceiverWAddress] = useState("")
     const [message, setMessage] = useState("");
     const [xmtp, setXmtp] = useState(null);
-    const [amountEth, setAmountEth] = useState(0)
+    const [amountEth, setAmountEth] = useState("0")
+    const [depositAmount, setDepositAmount] = useState("0")
+    const [withdrawAmount, setWithdrawAmount] = useState("0")
+    const [newMerkleRoot, setNewMerkleRoot] = useState("")
 
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState({});
     const [newMessage, setNewMessage] = useState("");
+
 
     /////////////
     /////////////
@@ -131,12 +137,63 @@ const App = () => {
         setNewMessage("");
     };
 
+    const handleDepositAmountChange = (event) => {
+        setDepositAmount(event.target.value);
+    };
+
+    const handleWithdrawAmountChange = (event) => {
+        setWithdrawAmount(event.target.value);
+    };
+
+    const handleReceiverAddressChange = (event) => {
+        setReceiverAddress(event.target.value);
+    };
+
+    const handleMerkleRootChange = (event) => {
+        setNewMerkleRoot(event.target.value);
+    };
+
+    const handleReceiverWAddressChange = (event) => {
+        setReceiverWAddress(event.target.value);
+    };
+
     const handleMessageChange = (event) => {
         setNewMessage(event.target.value);
     };
 
     const handleSelectConversation = (conversation) => {
         setSelectedConversation(conversation);
+    };
+
+    const depositAndUpdate = async (newMerkleRoot) => {
+
+        if (!window.ethereum) {
+            alert('Please install MetaMask to use this feature!');
+            return;
+        }
+
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send('eth_requestAccounts', []); // Request account access
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
+            ethers.utils.hashMessage(receiverAddress)
+
+
+            const transactionResponse = await contract.depositAndUpdateRoot(
+                hashedReceiver,
+                newMerkleRoot,
+                {
+                    value: ethers.utils.parseEther(depositAmount) // Convert Ether to Wei
+                }
+            );
+
+            await transactionResponse.wait(); // Wait for the transaction to be mined
+            setMessage('Deposit successful!');
+        } catch (error) {
+            console.error('Failed to complete the transaction:', error);
+            setMessage('Transaction failed!');
+        }
     };
 
     const withdrawWProof = async (comment) => {
@@ -201,7 +258,7 @@ const App = () => {
             pub_key_x: Array.from(ethers.utils.arrayify("0x"+pub_key_x)),
             pub_key_y: Array.from(ethers.utils.arrayify("0x"+pub_key_y)),
             signature: sSignature,
-            hashed_receiver : ethers.utils.hashMessage(signeraddress),
+            hashed_receiver : ethers.utils.hashMessage(receiverAddress),
             hashed_message: Array.from(ethers.utils.arrayify(hashedMessage)),
             nullifier: ethers.utils.hashMessage(sSignature),
             root: merkleTree,
@@ -231,7 +288,7 @@ const App = () => {
             from: signeraddress,
             to: COMMENT_VERIFIER_ADDRESS,
             value: '0',
-            gasPrice: "700000000", // 0.7 gwei
+            gasPrice: "700000000",
             nonce: await provider.getTransactionCount(signeraddress),
             chainId: "534351",
             data: contract.interface.encodeFunctionData(
@@ -276,6 +333,46 @@ const App = () => {
                             placeholder="Type a message"
                         />
                         <button onClick={handleSendMessage}>Send</button>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                    <h2>Deposit</h2>
+                    <input
+                            type="text"
+                            value={receiverAddress}
+                            onChange={handleReceiverAddressChange}
+                            placeholder="Receiver's Address"
+                        />
+                    <input
+                            type="text"
+                            value={newMerkleRoot}
+                            onChange={handleMerkleRootChange}
+                            placeholder="New Merkle Root Calculation"
+                        />
+                        <input
+                            type="text"
+                            value={depositAmount}
+                            onChange={handleDepositAmountChange}
+                            placeholder="Deposit Amount"
+                        />
+                        <button onClick={depositAndUpdate} >Deposit</button>
+                    </div>
+                    <div>
+                    <h2>Withdraw</h2>
+                    <input
+                            type="text"
+                            value={receiverWAddress}
+                            onChange={handleReceiverWAddressChange}
+                            placeholder="Withdrawal Address"
+                        />
+                        <input
+                            type="text"
+                            value={withdrawAmount}
+                            onChange={handleWithdrawAmountChange}
+                            placeholder="Withdraw Amount"
+                        />
+                        <button onClick={withdrawWProof} >Withdraw</button>
                     </div>
                 </div>
             </div>

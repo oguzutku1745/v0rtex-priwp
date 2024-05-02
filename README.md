@@ -23,6 +23,10 @@ https://sepolia.scrollscan.com/address/0x9e4f913d59955eeba541fef094d27b3556fa45c
 
 https://sepolia.scrollscan.com/address/0xF97565cdd63Db28C8016f1e95379E2DAc7f42E4D#code
 
+### 3- Verifier Contract Compiled from Noir
+
+https://sepolia.scrollscan.com/address/0x5fe8bbf52f7e9b0119ddab0317a9e7158b9eeb7d
+
 ## Installation
 
 To get started with v0rtex-priwp, please clone this repository and follow the installation instructions provided in the `Installation` section.
